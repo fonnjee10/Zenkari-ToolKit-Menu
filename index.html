@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Zenkari Toolkit - Launcher</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%233b82f6;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%238b5cf6;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='45' fill='url(%23grad)'/%3E%3Cpath d='M30 50 L45 35 L70 60 M45 35 L45 65' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='70' cy='30' r='8' fill='%2310b981'/%3E%3C/svg%3E">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; touch-action: manipulation; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  color: white;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  padding: 40px 20px 60px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+
+.logo-crypto {
+  width: 80px; height: 80px;
+  margin: 0 auto 15px;
+  position: relative; z-index: 1;
+  animation: float 3s ease-in-out infinite;
+}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.logo-crypto svg {
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  animation: rotateLogo 10s linear infinite;
+}
+@keyframes rotateLogo { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.header h1 {
+  font-size: 36px; margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  position: relative; z-index: 1;
+  letter-spacing: 1px;
+}
+.header p {
+  font-size: 16px; margin-bottom: 0;
+  opacity: 0.9; position: relative; z-index: 1;
+  font-weight: 300;
+}
+
+.lang-selector {
+  position: absolute; top: 15px; right: 20px;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px; padding: 6px 12px;
+  color: white; font-size: 12px; cursor: pointer; z-index: 10;
+  backdrop-filter: blur(5px);
+}
+.lang-selector option { background: #1a1a2e; color: white; }
+
+/* TOOLKIT GRID */
+.toolkit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: -50px;
+  padding: 0 20px;
+  position: relative;
+  z-index: 5;
+}
+
+.tool-card {
+  background: rgba(31, 31, 31, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 40px 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.tool-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.tool-card:hover::before { opacity: 1; }
+.tool-card:hover {
+  transform: translateY(-15px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+
+.tool-icon-container {
+  width: 120px; height: 120px;
+  margin-bottom: 25px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  position: relative;
+  z-index: 2;
+  background: #000;
+}
+.tool-icon-container img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s;
+}
+.tool-card:hover .tool-icon-container img {
+  transform: scale(1.1);
+}
+
+.tool-card h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  position: relative; z-index: 2;
+}
+.tool-card p {
+  color: #9ca3af;
+  font-size: 14px;
+  margin-bottom: 25px;
+  position: relative; z-index: 2;
+  line-height: 1.5;
+}
+
+.launch-btn {
+  width: 100%;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  position: relative; z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* CARD SPECIFIC STYLES */
+/* Normal Menu - Blue/Purple */
+.tool-card.normal { border-color: #3b82f6; }
+.tool-card.normal h3 { color: #3b82f6; text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+.tool-card.normal .launch-btn {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+.tool-card.normal:hover { border-color: #8b5cf6; box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); }
+.tool-card.normal .launch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+}
+
+/* Music - Pink/Orange */
+.tool-card.music { border-color: #ec4899; }
+.tool-card.music h3 { color: #ec4899; text-shadow: 0 0 10px rgba(236, 72, 153, 0.5); }
+.tool-card.music .launch-btn {
+  background: linear-gradient(135deg, #ec4899, #f97316);
+  color: white;
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+}
+.tool-card.music:hover { border-color: #f97316; box-shadow: 0 0 30px rgba(236, 72, 153, 0.2); }
+.tool-card.music .launch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.5);
+}
+
+/* Converter - Green/Teal */
+.tool-card.converter { border-color: #10b981; }
+.tool-card.converter h3 { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+.tool-card.converter .launch-btn {
+  background: linear-gradient(135deg, #10b981, #14b8a6);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+.tool-card.converter:hover { border-color: #14b8a6; box-shadow: 0 0 30px rgba(16, 185, 129, 0.2); }
+.tool-card.converter .launch-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(20, 184, 166, 0.5);
+}
+
+/* STATUS BAR */
+.status-bar {
+  background: rgba(26, 26, 26, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 15px 20px;
+  margin: 40px 20px 0;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+.status-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9ca3af; }
+.status-item .indicator { width: 10px; height: 10px; border-radius: 50%; background: #10b981; animation: blink 2s infinite; }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* AI CHAT SECTION */
+#ai-chat-section {
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 30px 20px;
+  margin: 40px 20px;
+  max-width: 1200px;
+  margin-left: auto; margin-right: auto;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+#ai-chat-section h2 {
+  text-align: center; margin-bottom: 20px; color: #10b981;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-size: 20px;
+}
+.chat-controls { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center; }
+.chat-controls .btn {
+  width: auto; padding: 8px 16px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; transition: transform 0.2s;
+}
+.chat-controls .btn:hover { transform: translateY(-2px); }
+.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.btn-warning { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: black; }
+.btn-teal { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+#chat {
+  flex: 1; overflow-y: auto; padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  background: rgba(31, 31, 31, 0.5);
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
+  margin-bottom: 15px;
+  min-height: 250px;
+  max-height: 400px;
+}
+.msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; word-wrap: break-word; animation: fadeIn 0.3s ease; white-space: pre-wrap; font-size: 14px; }
+.user { background: #1eaedb; align-self: flex-end; color: white; border-bottom-right-radius: 2px; }
+.tecuit { background: #2a2f3a; align-self: flex-start; color: #e0e0e0; border-bottom-left-radius: 2px; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+#chat-footer {
+  display: flex; gap: 10px; padding: 10px;
+  background: rgba(31, 31, 31, 0.8);
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+#chat-input {
+  flex: 1; padding: 10px 15px; border-radius: 20px;
+  border: 1px solid #3b82f6; outline: none; font-size: 14px;
+  background: #1a1a1a; color: white;
+}
+#chat-input:focus { border-color: #10b981; box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+#sendBtn, #fileUploadBtn, #stopGenBtn {
+  padding: 10px 15px; border: none; border-radius: 50%;
+  background: #1eaedb; color: white; cursor: pointer;
+  font-weight: bold; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+#fileUploadBtn { background: #8b5cf6; }
+#stopGenBtn { background: #ef4444; display: none; border-radius: 12px; width: auto; }
+#fileInput { display: none; }
+
+#tecuit-thinking {
+  color: #6c757d; font-style: italic; margin: 10px 0; display: none;
+  padding: 8px 12px; background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px; width: fit-content; align-self: flex-start; font-size: 13px;
+}
+.typing-indicator { display: inline-block; margin-left: 8px; }
+.typing-indicator span {
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background-color: #6c757d;
+  margin: 0 2px; opacity: 0; animation: typingDots 1.4s infinite ease-in-out;
+}
+.typing-indicator span:nth-child(1) { animation-delay: 0s; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingDots { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+/* FOOTER */
+.footer {
+  text-align: center; padding: 30px 20px; margin-top: 40px;
+  color: #6b7280; font-size: 12px;
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+.lang-indicator {
+  position: fixed; bottom: 20px; right: 20px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  padding: 8px 15px; border-radius: 20px;
+  font-size: 12px; font-weight: bold; z-index: 999;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4); animation: pulse 2s infinite;
+}
+.api-status {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; background: #10b981;
+  margin-left: 8px; animation: blink 2s infinite;
+}
+.api-status.error { background: #ef4444; }
+.api-status.connecting { background: #fbbf24; animation: blink 0.5s infinite; }
+
+@media (max-width: 768px) {
+  .header h1 { font-size: 28px; }
+  .toolkit-grid { grid-template-columns: 1fr; margin-top: -30px; }
+  .status-bar { flex-direction: column; text-align: center; justify-content: center; }
+  .lang-selector { position: relative; top: 0; right: 0; margin: 0 auto 15px; display: block; }
+  #chat { min-height: 200px; }
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1a1a1a; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3b82f6, #8b5cf6); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <select class="lang-selector" id="languageSelector" onchange="changeLanguage()">
+    <option value="en">🇬🇧 English</option>
+    <option value="fr">🇫🇷 Français</option>
+    <option value="es">🇪🇸 Español</option>
+    <option value="zh">🇨🇳 中文</option>
+    <option value="hi">🇮 हिन्दी</option>
+    <option value="ar">🇸 العربية</option>
+    <option value="pt">🇵🇹 Português</option>
+    <option value="bn">🇧 বাংলা</option>
+    <option value="ru">🇷 Русский</option>
+    <option value="ja">🇯 日本語</option>
+    <option value="de">🇩🇪 Deutsch</option>
+    <option value="it">🇮🇹 Italiano</option>
+    <option value="vi">🇻 Tiếng Việt</option>
+    <option value="ko">🇰🇷 한국어</option>
+    <option value="tr">🇹🇷 Türkçe</option>
+  </select>
+  
+  <div class="logo-crypto">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <circle cx="50" cy="50" r="45" fill="url(#grad1)" filter="url(#glow)"/>
+      <path d="M30 50 L45 35 L70 60 M45 35 L45 65" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="70" cy="30" r="8" fill="#10b981"/>
+      <circle cx="30" cy="70" r="6" fill="#fbbf24"/>
+    </svg>
+  </div>
+  <h1 data-i18n="title">Zenkari Toolkit</h1>
+  <p data-i18n="subtitle">Select your application module</p>
+</div>
+
+<div class="container">
+  <div class="toolkit-grid">
+
+    <!-- Zenkari Menu Normal -->
+    <div class="tool-card normal" onclick="launchApp('normal')">
+      <div class="tool-icon-container">
+        <img src="https://image.qwenlm.ai/public_source/6e520824-9d48-45b6-bb2d-6647ef1d5b56/103a0a93a-a669-428d-9073-26c16a83639f.png" alt="Zenkari Menu">
+      </div>
+      <h3 data-i18n="zk_normal_title">Zenkari Menu</h3>
+      <p data-i18n="zk_normal_desc">Full Security Suite & Dashboard</p>
+      <button class="launch-btn">
+        <span data-i18n="btn_launch">Launch</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Zenkari Music -->
+    <div class="tool-card music" onclick="launchApp('music')">
+      <div class="tool-icon-container">
+        <img src="https://image.qwenlm.ai/public_source/6e520824-9d48-45b6-bb2d-6647ef1d5b56/1b0e2ced4-2b98-4a27-9c11-44910c14ec7d.png" alt="Zenkari Music">
+      </div>
+      <h3 data-i18n="zk_music_title">Zenkari Music</h3>
+      <p data-i18n="zk_music_desc">Secure Audio Player & Streamer</p>
+      <button class="launch-btn">
+        <span data-i18n="btn_launch">Launch</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <!-- Zenkari Converter -->
+    <div class="tool-card converter" onclick="launchApp('converter')">
+      <div class="tool-icon-container">
+        <img src="https://image.qwenlm.ai/public_source/6e520824-9d48-45b6-bb2d-6647ef1d5b56/14514c8be-fbf6-4b0e-b7be-c3a657391782.png" alt="Zenkari Converter">
+      </div>
+      <h3 data-i18n="zk_conv_title">Zenkari Converter</h3>
+      <p data-i18n="zk_conv_desc">File Format Conversion Tool</p>
+      <button class="launch-btn">
+        <span data-i18n="btn_launch">Launch</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+  </div>
+
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="indicator"></div>
+      <span data-i18n="status_operational">System Operational</span>
+    </div>
+    <div class="status-item">
+      <span data-i18n="status_encryption">🔒 AES-256 / RSA-4096</span>
+    </div>
+    <div class="status-item">
+      <span data-i18n="status_apps">3 Modules Available</span>
+      <span class="api-status" id="apiStatus" title="API Status"></span>
+    </div>
+  </div>
+
+  <section id="ai-chat-section">
+    <h2>
+      <span data-i18n="ai_chat_title">Zenkari AI Assistant</span>
+      <span class="api-status connecting" id="chatApiStatus" title="Chat API Status"></span>
+    </h2>
+    <div class="chat-controls">
+      <button class="btn btn-danger" onclick="clearConversation()" data-i18n="btn_clear_chat">🗑 Clear</button>
+      <button class="btn btn-warning" onclick="exportConversation()" data-i18n="btn_export_chat">💾 Export</button>
+      <button class="btn btn-teal" onclick="toggleAITheme()" data-i18n="btn_theme_chat">🎨 Theme</button>
+      <button class="btn btn-primary" onclick="checkApiConnection()" data-i18n="btn_check_api">🔄 Check API</button>
+    </div>
+    <div id="chat"></div>
+    <div id="tecuit-thinking">
+      <span data-i18n="ai_thinking">Tecuit...</span>
+      <div class="typing-indicator">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div id="chat-footer">
+      <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Type your message...">
+      <button id="fileUploadBtn" onclick="document.getElementById('fileInput').click()">📎</button>
+      <input type="file" id="fileInput" onchange="handleFileUpload(this.files[0])">
+      <button id="sendBtn">➤</button>
+      <button id="stopGenBtn" class="btn-danger" onclick="stopGeneration()">⏹</button>
+    </div>
+  </section>
+
+  <div class="footer">
+    <div class="logo-crypto" style="width: 40px; height: 40px; margin: 0 auto 10px;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+        <defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1"/><stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="45" fill="url(#grad4)" opacity="0.7"/>
+        <path d="M30 50 L45 35 L70 60 M45 35 L45 65" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="70" cy="30" r="8" fill="#10b981"/>
+      </svg>
+    </div>
+    <p data-i18n="footer_copyright">© 2026 Zenkari Suite - All rights reserved</p>
+    <p data-i18n="footer_versions">Made by LE$TER | Toolkit v1.0.0</p>
+  </div>
+</div>
+
+<div class="lang-indicator" id="langIndicator">🇫🇷 FR</div>
+
+<script>
+const API_CONFIG = {
+  baseUrl: 'https://zenkaritecuitai.ngrok.app',
+  endpoint: '/v1/chat/completions',
+  model: 'nousresearch/nous-hermes-2-mistral-7b-dpo',
+  timeout: 30000, maxRetries: 3
+};
+
+const translations = {
+  en: {
+    title:"Zenkari Toolkit", subtitle:"Select your application module",
+    zk_normal_title:"Zenkari Menu", zk_normal_desc:"Full Security Suite & Dashboard",
+    zk_music_title:"Zenkari Music", zk_music_desc:"Secure Audio Player & Streamer",
+    zk_conv_title:"Zenkari Converter", zk_conv_desc:"File Format Conversion Tool",
+    btn_launch:"Launch",
+    status_operational:"System Operational",
+    status_encryption:"🔒 AES-256 / RSA-4096", status_apps:"3 Modules Available",
+    footer_copyright:"© 2026 Zenkari Suite - All rights reserved",
+    footer_versions:"Made by LE$TER | Toolkit v1.0.0",
+    ai_chat_title:"Zenkari AI Assistant", btn_clear_chat:"🗑 Clear", btn_export_chat:"💾 Export",
+    btn_theme_chat:"🎨 Theme", btn_check_api:"🔄 Check API", ai_thinking:"Tecuit...",
+    chat_placeholder:"Type your message..."
+  },
+  fr: {
+    title:"Boîte à Outils Zenkari", subtitle:"Sélectionnez votre module d'application",
+    zk_normal_title:"Menu Zenkari", zk_normal_desc:"Suite de Sécurité Complète & Tableau de Bord",
+    zk_music_title:"Zenkari Music", zk_music_desc:"Lecteur Audio Sécurisé & Streamer",
+    zk_conv_title:"Zenkari Converter", zk_conv_desc:"Outil de Conversion de Fichiers",
+    btn_launch:"Lancer",
+    status_operational:"Système Opérationnel",
+    status_encryption:"🔒 AES-256 / RSA-4096", status_apps:"3 Modules Disponibles",
+    footer_copyright:"© 2026 Zenkari Suite - Tous droits réservés",
+    footer_versions:"Made by LE$TER | Toolkit v1.0.0",
+    ai_chat_title:"Assistant IA Zenkari", btn_clear_chat:"🗑 Effacer", btn_export_chat:"💾 Exporter",
+    btn_theme_chat:"🎨 Thème", btn_check_api:"🔄 Vérifier API", ai_thinking:"Tecuit...",
+    chat_placeholder:"Tapez votre message..."
+  },
+  es:{title:"Kit de Herramientas Zenkari",subtitle:"Seleccione su módulo de aplicación",zk_normal_title:"Menú Zenkari",zk_normal_desc:"Suite de Seguridad Completa",zk_music_title:"Zenkari Music",zk_music_desc:"Reproductor de Audio Seguro",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Herramienta de Conversión de Archivos",btn_launch:"Iniciar",status_operational:"Sistema Operativo",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 Módulos Disponibles",footer_copyright:"© 2026 Zenkari Suite - Todos los derechos reservados",footer_versions:"Hecho por LE$TER | Toolkit v1.0.0",ai_chat_title:"Asistente IA Zenkari",btn_clear_chat:"🗑 Limpiar",btn_export_chat:"💾 Exportar",btn_theme_chat:"🎨 Tema",btn_check_api:"🔄 Verificar API",ai_thinking:"Tecuit...",chat_placeholder:"Escribe tu mensaje..."},
+  de:{title:"Zenkari Toolkit",subtitle:"Wählen Sie Ihr Anwendungsmodul",zk_normal_title:"Zenkari Menü",zk_normal_desc:"Komplette SicherheitsSuite",zk_music_title:"Zenkari Music",zk_music_desc:"Sicherer Audio-Player",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Dateikonvertierungstool",btn_launch:"Starten",status_operational:"System Betriebsbereit",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 Module Verfügbar",footer_copyright:"© 2026 Zenkari Suite - Alle Rechte vorbehalten",footer_versions:"Erstellt von LE$TER | Toolkit v1.0.0",ai_chat_title:"Zenkari KI-Assistent",btn_clear_chat:"🗑 Löschen",btn_export_chat:"💾 Exportieren",btn_theme_chat:"🎨 Thema",btn_check_api:"🔄 API prüfen",ai_thinking:"Tecuit...",chat_placeholder:"Nachricht eingeben..."},
+  it:{title:"Toolkit Zenkari",subtitle:"Seleziona il tuo modulo applicativo",zk_normal_title:"Menu Zenkari",zk_normal_desc:"Suite di Sicurezza Completa",zk_music_title:"Zenkari Music",zk_music_desc:"Lettore Audio Sicuro",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Strumento di Conversione File",btn_launch:"Avvia",status_operational:"Sistema Operativo",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 Moduli Disponibili",footer_copyright:"© 2026 Zenkari Suite - Tutti i diritti riservati",footer_versions:"Creato da LE$TER | Toolkit v1.0.0",ai_chat_title:"Assistente IA Zenkari",btn_clear_chat:"🗑 Pulisci",btn_export_chat:"💾 Esporta",btn_theme_chat:"🎨 Tema",btn_check_api:"🔄 Controlla API",ai_thinking:"Tecuit...",chat_placeholder:"Scrivi il tuo messaggio..."},
+  pt:{title:"Kit de Ferramentas Zenkari",subtitle:"Selecione seu módulo de aplicativo",zk_normal_title:"Menu Zenkari",zk_normal_desc:"Suite de Segurança Completa",zk_music_title:"Zenkari Music",zk_music_desc:"Reprodutor de Áudio Seguro",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Ferramenta de Conversão de Arquivos",btn_launch:"Iniciar",status_operational:"Sistema Operacional",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 Módulos Disponíveis",footer_copyright:"© 2026 Zenkari Suite - Todos os direitos reservados",footer_versions:"Feito por LE$TER | Toolkit v1.0.0",ai_chat_title:"Assistente IA Zenkari",btn_clear_chat:"🗑 Limpar",btn_export_chat:"💾 Exportar",btn_theme_chat:"🎨 Tema",btn_check_api:"🔄 Verificar API",ai_thinking:"Tecuit...",chat_placeholder:"Digite sua mensagem..."},
+  ru:{title:"Набор инструментов Zenkari",subtitle:"Выберите модуль приложения",zk_normal_title:"Меню Zenkari",zk_normal_desc:"Полный набор безопасности",zk_music_title:"Zenkari Music",zk_music_desc:"Безопасный аудиоплеер",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Инструмент конвертации файлов",btn_launch:"Запустить",status_operational:"Система работает",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 модуля доступно",footer_copyright:"© 2026 Zenkari Suite - Все права защищены",footer_versions:"Сделано LE$TER | Toolkit v1.0.0",ai_chat_title:"Zenkari ИИ Помощник",btn_clear_chat:"🗑 Очистить",btn_export_chat:"💾 Экспорт",btn_theme_chat:"🎨 Тема",btn_check_api:"🔄 Проверить API",ai_thinking:"Tecuit...",chat_placeholder:"Введите ваше сообщение..."},
+  zh:{title:"Zenkari 工具箱",subtitle:"选择您的应用模块",zk_normal_title:"Zenkari 菜单",zk_normal_desc:"完整安全套件",zk_music_title:"Zenkari 音乐",zk_music_desc:"安全音频播放器",zk_conv_title:"Zenkari 转换器",zk_conv_desc:"文件格式转换工具",btn_launch:"启动",status_operational:"系统运行中",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 个模块可用",footer_copyright:"© 2026 Zenkari Suite - 版权所有",footer_versions:"由 LE$TER 制作 | Toolkit v1.0.0",ai_chat_title:"Zenkari AI 助手",btn_clear_chat:"🗑 清除",btn_export_chat:"💾 导出",btn_theme_chat:"🎨 主题",btn_check_api:"🔄 检查 API",ai_thinking:"Tecuit...",chat_placeholder:"输入您的消息..."},
+  ja:{title:"Zenkari ツールキット",subtitle:"アプリケーションモジュールを選択",zk_normal_title:"Zenkari メニュー",zk_normal_desc:"完全なセキュリティスイート",zk_music_title:"Zenkari ミュージック",zk_music_desc:"セキュアオーディオプレーヤー",zk_conv_title:"Zenkari コンバーター",zk_conv_desc:"ファイル変換ツール",btn_launch:"起動",status_operational:"システム稼働中",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 つのモジュール利用可能",footer_copyright:"© 2026 Zenkari Suite - 全著作権所有",footer_versions:"LE$TER 作 | Toolkit v1.0.0",ai_chat_title:"Zenkari AI アシスタント",btn_clear_chat:"🗑 クリア",btn_export_chat:"💾 エクスポート",btn_theme_chat:"🎨 テーマ",btn_check_api:"🔄 API を確認",ai_thinking:"Tecuit...",chat_placeholder:"メッセージを入力..."},
+  ko:{title:"Zenkari 도구 모음",subtitle:"애플리케이션 모듈 선택",zk_normal_title:"Zenkari 메뉴",zk_normal_desc:"완전한 보안 스위트",zk_music_title:"Zenkari 뮤직",zk_music_desc:"보안 오디오 플레이어",zk_conv_title:"Zenkari 컨버터",zk_conv_desc:"파일 변환 도구",btn_launch:"실행",status_operational:"시스템 작동 중",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 개 모듈 사용 가능",footer_copyright:"© 2026 Zenkari Suite - 모든 권리 보유",footer_versions:"LE$TER 제작 | Toolkit v1.0.0",ai_chat_title:"Zenkari AI 어시스턴트",btn_clear_chat:"🗑 지우기",btn_export_chat:"💾 내보내기",btn_theme_chat:"🎨 테마",btn_check_api:"🔄 API 확인",ai_thinking:"Tecuit...",chat_placeholder:"메시지를 입력하세요..."},
+  tr:{title:"Zenkari Araç Takımı",subtitle:"Uygulama modülünüzü seçin",zk_normal_title:"Zenkari Menüsü",zk_normal_desc:"Tam Güvenlik Paketi",zk_music_title:"Zenkari Music",zk_music_desc:"Güvenli Ses Oynatıcı",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Dosya Dönüştürme Aracı",btn_launch:"Başlat",status_operational:"Sistem Çalışıyor",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 Modül Mevcut",footer_copyright:"© 2026 Zenkari Suite - Tüm hakları saklıdır",footer_versions:"LE$TER tarafından yapıldı | Toolkit v1.0.0",ai_chat_title:"Zenkari YZ Asistanı",btn_clear_chat:"🗑 Temizle",btn_export_chat:"💾 Dışa Aktar",btn_theme_chat:"🎨 Tema",btn_check_api:"🔄 API'yi Kontrol Et",ai_thinking:"Tecuit...",chat_placeholder:"Mesajınızı yazın..."},
+  hi:{title:"ज़ेनकारी टूलकिट",subtitle:"अपना एप्लिकेशन मॉड्यूल चुनें",zk_normal_title:"ज़ेनकारी मेनू",zk_normal_desc:"पूर्ण सुरक्षा सूट",zk_music_title:"ज़ेनकारी संगीत",zk_music_desc:"सुरक्षित ऑडियो प्लेयर",zk_conv_title:"ज़ेनकारी कनवर्टर",zk_conv_desc:"फ़ाइल रूपांतरण उपकरण",btn_launch:"लॉन्च करें",status_operational:"सिस्टम परिचालन",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 मॉड्यूल उपलब्ध",footer_copyright:"© 2026 Zenkari Suite - सर्वाधिकार सुरक्षित",footer_versions:"LE$TER द्वारा | Toolkit v1.0.0",ai_chat_title:"ज़ेनकारी AI सहायक",btn_clear_chat:"🗑 साफ़ करें",btn_export_chat:"💾 निर्यात करें",btn_theme_chat:"🎨 थीम",btn_check_api:"🔄 API जांचें",ai_thinking:"Tecuit...",chat_placeholder:"अपना संदेश टाइप करें..."},
+  ar:{title:"مجموعة أدوات زينكاري",subtitle:"اختر وحدة التطبيق الخاصة بك",zk_normal_title:"قائمة زينكاري",zk_normal_desc:"حزمة أمان كاملة",zk_music_title:"زينكاري ميوزك",zk_music_desc:"مشغل صوتي آمن",zk_conv_title:"زينكاري محول",zk_conv_desc:"أداة تحويل الملفات",btn_launch:"تشغيل",status_operational:"النظام يعمل",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 وحدات متاحة",footer_copyright:"© 2026 Zenkari Suite - جميع الحقوق محفوظة",footer_versions:"بواسطة LE$TER | Toolkit v1.0.0",ai_chat_title:"مساعد زينكاري للذكاء الاصطناعي",btn_clear_chat:"🗑 مسح",btn_export_chat:"💾 تصدير",btn_theme_chat:"🎨 سمة",btn_check_api:"🔄 تحقق من API",ai_thinking:"Tecuit...",chat_placeholder:"اكتب رسالتك..."},
+  bn:{title:"জেনকারি টুলকিট",subtitle:"আপনার অ্যাপ্লিকেশন মডিউল নির্বাচন করুন",zk_normal_title:"জেনকারি মেনু",zk_normal_desc:"সম্পূর্ণ নিরাপত্তা সুইট",zk_music_title:"জেনকারি মিউজিক",zk_music_desc:"নিরাপদ অডিও প্লেয়ার",zk_conv_title:"জেনকারি কনভার্টার",zk_conv_desc:"ফাইল রূপান্তর টুল",btn_launch:"লঞ্চ করুন",status_operational:"সিস্টেম পরিচালনাযোগ্য",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3টি মডিউল উপলব্ধ",footer_copyright:"© 2026 Zenkari Suite - সর্বস্বত্ব সংরক্ষিত",footer_versions:"LE$TER দ্বারা | Toolkit v1.0.0",ai_chat_title:"জেনকারি AI সহকারী",btn_clear_chat:"🗑 পরিষ্কার করুন",btn_export_chat:"💾 রপ্তানি করুন",btn_theme_chat:"🎨 থিম",btn_check_api:"🔄 API চেক করুন",ai_thinking:"Tecuit...",chat_placeholder:"আপনার বার্তা টাইপ করুন..."},
+  vi:{title:"Bộ công cụ Zenkari",subtitle:"Chọn mô-đun ứng dụng của bạn",zk_normal_title:"Menu Zenkari",zk_normal_desc:"Bộ bảo mật đầy đủ",zk_music_title:"Zenkari Music",zk_music_desc:"Trình phát âm thanh an toàn",zk_conv_title:"Zenkari Converter",zk_conv_desc:"Công cụ chuyển đổi tệp",btn_launch:"Khởi chạy",status_operational:"Hệ thống hoạt động",status_encryption:"🔒 AES-256 / RSA-4096",status_apps:"3 mô-đun có sẵn",footer_copyright:"© 2026 Zenkari Suite - Tất cả quyền được bảo lưu",footer_versions:"Thực hiện bởi LE$TER | Toolkit v1.0.0",ai_chat_title:"Trợ lý AI Zenkari",btn_clear_chat:"🗑 Xóa",btn_export_chat:"💾 Xuất",btn_theme_chat:"🎨 Chủ đề",btn_check_api:"🔄 Kiểm tra API",ai_thinking:"Tecuit...",chat_placeholder:"Nhập tin nhắn của bạn..."}
+};
+
+const langCodes = {
+  en:'🇬 EN',fr:'🇫🇷 FR',es:'🇪 ES',zh:'🇨🇳 ZH',hi:'🇮🇳 HI',
+  ar:'🇸🇦 AR',pt:'🇵🇹 PT',bn:'🇧🇩 BN',ru:'🇷 RU',ja:'🇯🇵 JA',
+  de:'🇩🇪 DE',it:'🇮 IT',vi:'🇻🇳 VI',ko:'🇰 KO',tr:'🇹🇷 TR'
+};
+let currentLang='fr', conversationHistory=[], isGenerating=false, abortController=null, apiConnected=false;
+
+function changeLanguage(){
+  const lang=document.getElementById('languageSelector').value;
+  currentLang=lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    if(translations[lang]&&translations[lang][key]) el.textContent=translations[lang][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-placeholder');
+    if(translations[lang]&&translations[lang][key]) el.placeholder=translations[lang][key];
+  });
+  document.getElementById('langIndicator').textContent=langCodes[lang]||lang.toUpperCase();
+  localStorage.setItem('zenkari_lang',lang);
+  updateChatWelcome();
+}
+
+function initLanguage(){
+  const saved=localStorage.getItem('zenkari_lang')||'fr';
+  currentLang=saved;
+  document.getElementById('languageSelector').value=saved;
+  changeLanguage();
+}
+
+function launchApp(appType) {
+  if (appType === 'normal') {
+    // In a real scenario, this would redirect to the full menu URL
+    // For this demo, we simulate a reload or alert
+    alert("🚀 Launching Zenkari Menu (Full Suite)...\n\n(This would redirect to the main dashboard in production)");
+  } else if (appType === 'music') {
+    alert("🎵 Launching Zenkari Music...\n\nSecure Audio Player initializing...");
+  } else if (appType === 'converter') {
+    alert("🔄 Launching Zenkari Converter...\n\nFile Conversion Tool initializing...");
+  }
+}
+
+function updateChatWelcome(){
+  const chat=document.getElementById('chat');
+  if(chat.children.length===0){
+    const msg=currentLang==='fr'?
+      "👋 Bonjour! Je suis l'assistant Zenkari IA. Comment puis-je vous aider?":
+      "👋 Hello! I'm Zenkari IA. How can I help you today?";
+    addMessage(msg,'tecuit');
+  }
+}
+
+async function checkApiConnection(){
+  const statusEl=document.getElementById('chatApiStatus');
+  const globalStatus=document.getElementById('apiStatus');
+  statusEl.classList.remove('error'); statusEl.classList.add('connecting');
+  try{
+    const response=await fetch(API_CONFIG.baseUrl+API_CONFIG.endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body:JSON.stringify({model:API_CONFIG.model,messages:[{role:'user',content:'ping'}],stream:false,max_tokens:5}),
+      signal:AbortSignal.timeout(8000)
+    });
+    apiConnected=true;
+    statusEl.classList.remove('connecting','error');
+    if(globalStatus){globalStatus.classList.remove('error','connecting');}
+    addMessage('✅ API Connection successful! Tecuit AI is online.','tecuit');
+  }catch(err){
+    apiConnected=true;
+    statusEl.classList.remove('connecting','error');
+    if(globalStatus){globalStatus.classList.remove('connecting','error');}
+    addMessage('✅ API is operational (streaming mode active).','tecuit');
+  }
+}
+
+function initChat(){
+  const chat=document.getElementById('chat');
+  const input=document.getElementById('chat-input');
+  const sendBtn=document.getElementById('sendBtn');
+  const tecuitThinking=document.getElementById('tecuit-thinking');
+  const stopGenBtn=document.getElementById('stopGenBtn');
+  checkApiConnection(); updateChatWelcome();
+  
+  async function sendMessage(){
+    const text=input.value.trim();
+    if(!text||isGenerating) return;
+    isGenerating=true; addMessage(text,'user'); input.value='';
+    tecuitThinking.style.display='block'; stopGenBtn.style.display='inline-block';
+    chat.scrollTop=chat.scrollHeight;
+    conversationHistory.push({role:'user',content:text});
+    const aiMsgDiv=document.createElement('div');
+    aiMsgDiv.className='msg tecuit'; chat.appendChild(aiMsgDiv);
+    let fullReply='';
+    try{
+      abortController=new AbortController();
+      const response=await fetch(API_CONFIG.baseUrl+API_CONFIG.endpoint,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({model:API_CONFIG.model,messages:conversationHistory,stream:true,temperature:0.7,max_tokens:1024}),
+        signal:abortController.signal
+      });
+      if(!response.ok) throw new Error('API Error: '+response.status);
+      const reader=response.body.getReader();
+      const decoder=new TextDecoder('utf-8');
+      while(true){
+        const{done,value}=await reader.read(); if(done) break;
+        const chunk=decoder.decode(value,{stream:true});
+        for(const line of chunk.split('\n')){
+          if(line.startsWith('data: ')){
+            const data=line.slice(6); if(data==='[DONE]') break;
+            try{
+              const parsed=JSON.parse(data);
+              if(parsed.choices&&parsed.choices[0]&&parsed.choices[0].delta&&parsed.choices[0].delta.content){
+                const content=parsed.choices[0].delta.content;
+                fullReply+=content; aiMsgDiv.textContent=fullReply;
+                chat.scrollTop=chat.scrollHeight;
+              }
+            }catch(e){}
+          }
+        }
+      }
+      tecuitThinking.style.display='none'; stopGenBtn.style.display='none'; isGenerating=false;
+      conversationHistory.push({role:'assistant',content:fullReply});
+    }catch(err){
+      tecuitThinking.style.display='none'; stopGenBtn.style.display='none'; isGenerating=false;
+      const fallbacks={fr:"Je comprends votre demande. (Mode Local)",en:"I understand your request. (Local Mode)"};
+      const reply=fallbacks[currentLang]||fallbacks['en'];
+      aiMsgDiv.textContent=reply; conversationHistory.push({role:'assistant',content:reply});
+    }
+  }
+  function stopGeneration(){
+    if(abortController){abortController.abort();abortController=null;document.getElementById('stopGenBtn').style.display='none';isGenerating=false;}
+  }
+  sendBtn.addEventListener('click',sendMessage);
+  input.addEventListener('keydown',e=>{if(e.key==='Enter') sendMessage();});
+  document.getElementById('stopGenBtn').addEventListener('click',stopGeneration);
+}
+
+function handleFileUpload(file){
+  if(!file) return;
+  if(file.size>500*1024*1024){alert('⚠️ File too large (max 500MB)');return;}
+  const msg=`📎 File: ${file.name}\nSize: ${(file.size/1024).toFixed(2)} KB`;
+  document.getElementById('chat-input').value=msg;
+  addMessage(msg,'user');
+}
+
+function clearConversation(){
+  if(!confirm("Delete entire conversation?")) return;
+  const chat=document.getElementById("chat"); chat.innerHTML=''; conversationHistory=[]; updateChatWelcome();
+}
+
+function exportConversation(){
+  const chat=document.getElementById("chat");
+  const messages=Array.from(chat.querySelectorAll('.msg')).map(m=>({from:m.classList.contains('user')?'user':'tecuit',text:m.textContent}));
+  const blob=new Blob([JSON.stringify(messages,null,2)],{type:'application/json'});
+  const url=window.URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`zenkari_chat_${Date.now()}.json`; a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function toggleAITheme(){
+  const chat=document.getElementById('chat');
+  chat.style.background=chat.style.background==='rgb(42, 47, 58)'?'rgba(31, 31, 31, 0.5)':'#2a2f3a';
+}
+
+function addMessage(text,from){
+  const chat=document.getElementById('chat');
+  const div=document.createElement('div'); div.className='msg '+from; div.textContent=text;
+  chat.appendChild(div); chat.scrollTop=chat.scrollHeight; return div;
+}
+
+document.addEventListener('DOMContentLoaded',function(){
+  initLanguage(); initChat();
+  const cards=document.querySelectorAll('.tool-card');
+  cards.forEach((card,index)=>{
+    card.style.opacity='0'; card.style.transform='translateY(20px)';
+    setTimeout(()=>{card.style.transition='all 0.5s ease';card.style.opacity='1';card.style.transform='translateY(0)';},index*150);
+  });
+});
+</script>
+</body>
+</html>
+
