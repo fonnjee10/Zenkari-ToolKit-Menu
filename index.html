@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ZK Tools — Outils Zenkari v1.0.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--bg0:#06070f;--bg1:#0c0e1d;
+--blue:#3b82f6;--violet:#8b5cf6;--green:#10b981;
+--cyan:#00e5ff;--red:#ff3344;--gold:#fbbf24;--pink:#ec4899;
+--teal:#14b8a6;--orange:#f97316;
+--text:#dde6f5;--muted:#4b5a72;
+--border:rgba(59,130,246,.18);
+--fm:"Space Mono",monospace;--fb:"Sora",sans-serif;--r:16px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;touch-action:manipulation}
+body{font-family:var(--fb);background:var(--bg0);color:var(--text);min-height:100vh;overflow-x:hidden}
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ── LOGO ── */
+.logo-wrap{width:130px;height:130px;margin:0 auto 28px;position:relative;z-index:1;cursor:pointer}
+.logo-wrap svg{width:100%;height:100%;overflow:visible;
+  filter:drop-shadow(0 0 14px rgba(96,165,250,.6)) drop-shadow(0 0 38px rgba(139,92,246,.45));
+  transition:transform .4s cubic-bezier(.22,.68,0,1.2),filter .4s}
+.logo-wrap:hover svg{transform:scale(1.07);
+  filter:drop-shadow(0 0 24px rgba(96,165,250,.9)) drop-shadow(0 0 60px rgba(139,92,246,.78)) drop-shadow(0 0 95px rgba(0,229,255,.5))}
+.logo-wrap:active svg{transform:scale(.95);transition:transform .1s ease}
+.lg-breathe{animation:lgBreathe 5s ease-in-out infinite;transform-origin:65px 58px}
+@keyframes lgBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+.lg-glow{animation:lgGlow 5s ease-in-out infinite}
+@keyframes lgGlow{0%,100%{opacity:.45}50%{opacity:.85}}
+
+/* ── HEADER ── */
+.header{position:relative;z-index:1;padding:80px 24px 110px;text-align:center;overflow:hidden;
+  background:linear-gradient(180deg,#080a1c 0%,var(--bg0) 100%)}
+.header::before{content:"";position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:700px;height:500px;
+  background:radial-gradient(ellipse at 50% 35%,rgba(59,130,246,.15) 0%,rgba(139,92,246,.08) 45%,transparent 70%);
+  animation:aurora 8s ease-in-out infinite alternate;pointer-events:none}
+@keyframes aurora{0%{transform:translateX(-55%) scaleX(1)}100%{transform:translateX(-45%) scaleX(1.18) scaleY(1.06)}}
+.header::after{content:"";position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,var(--blue) 30%,var(--violet) 70%,transparent 100%);
+  animation:lineGlow 3s ease-in-out infinite}
+@keyframes lineGlow{0%,100%{opacity:.3}50%{opacity:1}}
+.header h1{font-family:var(--fm);font-size:clamp(26px,4.5vw,46px);letter-spacing:3px;
+  background:linear-gradient(135deg,#93c5fd 0%,#c4b5fd 50%,#f0abfc 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  position:relative;z-index:1;margin-bottom:10px;
+  animation:slideUp .7s cubic-bezier(.22,.68,0,1.2) both}
+.header p{color:var(--muted);font-size:12px;letter-spacing:2px;text-transform:uppercase;
+  position:relative;z-index:1;
+  animation:slideUp .7s .15s cubic-bezier(.22,.68,0,1.2) both}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.lang-selector{position:absolute;top:16px;right:20px;z-index:10;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:6px 12px;color:var(--text);
+  font-size:12px;cursor:pointer;font-family:var(--fb);
+  backdrop-filter:blur(6px);transition:background .2s}
+.lang-selector:hover{background:rgba(255,255,255,.09)}
+.lang-selector option{background:#12152a}
+
+/* ── GRID ── */
+.container{max-width:1000px;margin:0 auto;padding:0 20px 40px;position:relative;z-index:1}
+.app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(292px,1fr));gap:18px;margin-top:-55px}
+
+/* ── CARD ── */
+.app-card{
+  background:linear-gradient(145deg,rgba(9,11,26,.93),rgba(13,15,32,.93));
+  border:1px solid var(--border);border-radius:var(--r);
+  padding:26px 20px 20px;position:relative;overflow:hidden;
+  backdrop-filter:blur(16px);cursor:pointer;
+  opacity:0;transform:translateY(28px);
+  will-change:transform,box-shadow;
+  transition:transform .35s cubic-bezier(.22,.68,0,1.2),box-shadow .35s ease,border-color .35s ease,opacity .45s ease}
+.app-card::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 0%,rgba(59,130,246,.055) 48%,rgba(139,92,246,.035) 52%,transparent 100%);
+  transform:translateX(-110%);transition:transform .7s ease;pointer-events:none;z-index:0}
+.app-card:hover::before{transform:translateX(110%)}
+.app-card::after{content:"";position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(59,130,246,.6),transparent);
+  opacity:0;transition:opacity .35s;z-index:1}
+.app-card:hover::after{opacity:1}
+.app-card:hover{transform:translateY(-8px) scale(1.012);border-color:rgba(59,130,246,.42);
+  box-shadow:0 24px 50px rgba(0,0,0,.55),0 0 0 1px rgba(59,130,246,.08),0 0 45px rgba(59,130,246,.1)}
+.app-icon{width:60px;height:60px;margin:0 auto 15px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:13px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  transition:border-color .3s,box-shadow .3s,transform .35s;
+  position:relative;z-index:1}
+.app-card:hover .app-icon{border-color:rgba(59,130,246,.5);
+  box-shadow:0 0 22px rgba(59,130,246,.22),inset 0 0 12px rgba(59,130,246,.08);
+  transform:translateY(-2px)}
+.app-card:hover .app-icon svg{transform:scale(1.15);filter:drop-shadow(0 0 8px rgba(59,130,246,.5));
+  transition:transform .4s cubic-bezier(.22,.68,0,1.2),filter .4s}
+.app-card h3{font-size:16px;font-weight:700;color:#bdd0ec;margin-bottom:5px;text-align:center;
+  letter-spacing:.3px;position:relative;z-index:1}
+.app-card p{color:var(--muted);font-size:12px;text-align:center;margin-bottom:13px;
+  line-height:1.7;position:relative;z-index:1}
+.badge{display:inline-flex;align-items:center;font-family:var(--fm);font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:20px;margin-bottom:11px;letter-spacing:.5px;position:relative;z-index:1}
+.badge-s{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.25)}
+.badge-b{background:rgba(251,191,36,.1);color:var(--gold);border:1px solid rgba(251,191,36,.22);
+  animation:badgePulse 2.5s ease-in-out infinite}
+@keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0)}50%{box-shadow:0 0 10px rgba(251,191,36,.2)}}
+.app-features{list-style:none;margin-bottom:16px;border-top:1px solid rgba(59,130,246,.1);
+  padding-top:11px;position:relative;z-index:1}
+.app-features li{padding:4px 0;font-size:11px;color:#485e78;display:flex;align-items:center;gap:8px}
+.fd{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;
+  box-shadow:0 0 5px rgba(16,185,129,.5)}
+.launch-btn{display:block;width:100%;padding:12px;
+  border:1px solid rgba(59,130,246,.28);border-radius:10px;
+  text-align:center;font-family:var(--fm);font-size:11px;font-weight:700;
+  letter-spacing:1.5px;color:#7fb3f5;text-decoration:none;text-transform:uppercase;
+  background:rgba(59,130,246,.07);position:relative;z-index:1;overflow:hidden;
+  transition:transform .22s,border-color .22s,box-shadow .22s,color .22s;margin-top:6px}
+.launch-btn::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.18),rgba(139,92,246,.12));
+  opacity:0;transition:opacity .22s}
+.launch-btn:hover::before{opacity:1}
+.launch-btn:hover{border-color:var(--blue);color:#fff;
+  box-shadow:0 0 22px rgba(59,130,246,.28),0 4px 16px rgba(0,0,0,.3);transform:translateY(-2px)}
+.launch-btn:active{transform:scale(.98)}
+
+/* ── Carte spéciale: deux boutons ── */
+.dual-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0}
+.btn-music{border-color:rgba(139,92,246,.28);color:#c4b5fd;background:rgba(139,92,246,.07)}
+.btn-music::before{background:linear-gradient(135deg,rgba(139,92,246,.18),rgba(236,72,153,.12))}
+.btn-music:hover{border-color:var(--violet);box-shadow:0 0 22px rgba(139,92,246,.3)}
+.btn-engine{border-color:rgba(20,184,166,.28);color:#5eead4;background:rgba(20,184,166,.07)}
+.btn-engine::before{background:linear-gradient(135deg,rgba(20,184,166,.18),rgba(59,130,246,.12))}
+.btn-engine:hover{border-color:var(--teal);box-shadow:0 0 22px rgba(20,184,166,.3)}
+
+/* ── Carte retour (home) ── */
+.hc{border-color:rgba(16,185,129,.18)}
+.hc:hover{border-color:rgba(16,185,129,.45);box-shadow:0 24px 50px rgba(0,0,0,.5),0 0 40px rgba(16,185,129,.1)}
+.hc .app-icon{border-color:rgba(16,185,129,.2)}
+.hc:hover .app-icon{border-color:rgba(16,185,129,.5);box-shadow:0 0 22px rgba(16,185,129,.22)}
+.hc:hover .app-icon svg{filter:drop-shadow(0 0 8px rgba(16,185,129,.5))}
+.hc h3{color:#6ee7b7}
+.hc .launch-btn{border-color:rgba(16,185,129,.28);color:#6ee7b7;background:rgba(16,185,129,.07)}
+.hc .launch-btn::before{background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(59,130,246,.12))}
+.hc .launch-btn:hover{border-color:var(--green);box-shadow:0 0 22px rgba(16,185,129,.3)}
+.hc .fd{background:var(--green);box-shadow:0 0 5px rgba(16,185,129,.5)}
+
+/* ── Carte Music/Engine ── */
+.mc{border-color:rgba(139,92,246,.2)}
+.mc:hover{border-color:rgba(139,92,246,.45);box-shadow:0 24px 50px rgba(0,0,0,.5),0 0 40px rgba(139,92,246,.1)}
+.mc .app-icon{border-color:rgba(139,92,246,.2)}
+.mc:hover .app-icon{border-color:rgba(139,92,246,.5)}
+.mc h3{color:#c4b5fd}
+.mc .fd{background:var(--violet);box-shadow:0 0 5px rgba(139,92,246,.5)}
+
+/* ── Carte Converter ── */
+.cc{border-color:rgba(249,115,22,.18)}
+.cc:hover{border-color:rgba(249,115,22,.45);box-shadow:0 24px 50px rgba(0,0,0,.5),0 0 40px rgba(249,115,22,.1)}
+.cc .app-icon{border-color:rgba(249,115,22,.2)}
+.cc:hover .app-icon{border-color:rgba(249,115,22,.5);box-shadow:0 0 22px rgba(249,115,22,.22)}
+.cc:hover .app-icon svg{filter:drop-shadow(0 0 8px rgba(249,115,22,.5))}
+.cc h3{color:#fdba74}
+.cc .launch-btn{border-color:rgba(249,115,22,.28);color:#fdba74;background:rgba(249,115,22,.07)}
+.cc .launch-btn::before{background:linear-gradient(135deg,rgba(249,115,22,.18),rgba(251,191,36,.12))}
+.cc .launch-btn:hover{border-color:var(--orange);box-shadow:0 0 22px rgba(249,115,22,.3)}
+.cc .fd{background:var(--orange);box-shadow:0 0 5px rgba(249,115,22,.5)}
+
+/* ── STATUS BAR ── */
+.status-bar{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+  background:rgba(255,255,255,.023);border:1px solid var(--border);
+  border-radius:12px;padding:13px 20px;margin:28px 0;
+  animation:fadeUp .6s .85s ease both}
+.si{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-family:var(--fm)}
+.dot{width:7px;height:7px;border-radius:50%}
+.dg{background:var(--green);animation:dp 2.4s 0s ease-in-out infinite;box-shadow:0 0 8px rgba(16,185,129,.55)}
+.dc{background:var(--cyan);animation:dp 2.4s .4s ease-in-out infinite;box-shadow:0 0 8px rgba(0,229,255,.55)}
+.dv{background:var(--violet);animation:dp 2.4s .8s ease-in-out infinite;box-shadow:0 0 8px rgba(139,92,246,.55)}
+@keyframes dp{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.55}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ── FOOTER ── */
+.footer{text-align:center;padding:20px;border-top:1px solid var(--border);
+  color:var(--muted);font-size:11px;font-family:var(--fm);letter-spacing:.5px;line-height:1.9}
+.lang-indicator{position:fixed;bottom:20px;right:20px;
+  background:linear-gradient(135deg,rgba(59,130,246,.9),rgba(139,92,246,.9));
+  padding:7px 14px;border-radius:20px;font-size:11px;font-weight:700;
+  z-index:999;font-family:var(--fm);box-shadow:0 4px 20px rgba(0,0,0,.4);
+  animation:floatBadge 3s ease-in-out infinite}
+@keyframes floatBadge{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+[dir="rtl"] .lang-selector{right:auto;left:20px}
+[dir="rtl"] .lang-indicator{right:auto;left:20px}
+
+@media(max-width:768px){
+  .header{padding:55px 16px 85px}
+  .app-grid{grid-template-columns:1fr;margin-top:-35px}
+  .status-bar{flex-direction:column;text-align:center;gap:10px}
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<div class="header">
+<select class="lang-selector" id="ls" onchange="changeLang()">
+  <option value="en">🇬🇧 English</option><option value="fr">🇫🇷 Français</option>
+  <option value="es">🇪🇸 Español</option><option value="zh">🇨🇳 中文</option>
+  <option value="hi">🇮🇳 हिन्दी</option><option value="ar">🇸🇦 العربية</option>
+  <option value="pt">🇵🇹 Português</option><option value="bn">🇧🇩 বাংলা</option>
+  <option value="ru">🇷🇺 Русский</option><option value="ja">🇯🇵 日本語</option>
+  <option value="de">🇩🇪 Deutsch</option><option value="it">🇮🇹 Italiano</option>
+  <option value="vi">🇻🇳 Tiếng Việt</option><option value="ko">🇰🇷 한국어</option>
+  <option value="tr">🇹🇷 Türkçe</option>
+</select>
+
+<!-- Logo ZK (identique au menu) -->
+<div class="logo-wrap">
+<svg viewBox="0 0 130 116" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <linearGradient id="zMain" x1="0" y1="0" x2="130" y2="130" gradientUnits="userSpaceOnUse">
+    <stop offset="0%"   stop-color="#67e8f9"/>
+    <stop offset="35%"  stop-color="#60a5fa"/>
+    <stop offset="68%"  stop-color="#a78bfa"/>
+    <stop offset="100%" stop-color="#f472b6"/>
+  </linearGradient>
+  <linearGradient id="zBloom" x1="0" y1="0" x2="130" y2="130" gradientUnits="userSpaceOnUse">
+    <stop offset="0%"   stop-color="#cffafe"/>
+    <stop offset="35%"  stop-color="#bfdbfe"/>
+    <stop offset="68%"  stop-color="#ede9fe"/>
+    <stop offset="100%" stop-color="#fce7f3"/>
+  </linearGradient>
+  <linearGradient id="zHex" x1="0" y1="0" x2="130" y2="130" gradientUnits="userSpaceOnUse">
+    <stop offset="0%"   stop-color="#67e8f9" stop-opacity=".95"/>
+    <stop offset="100%" stop-color="#f472b6" stop-opacity=".75"/>
+  </linearGradient>
+  <radialGradient id="zBg" cx="50%" cy="50%" r="50%">
+    <stop offset="0%"   stop-color="#0b0f28"/>
+    <stop offset="100%" stop-color="#04060f"/>
+  </radialGradient>
+  <linearGradient id="zShine" x1="50%" y1="0%" x2="50%" y2="100%">
+    <stop offset="0%"   stop-color="rgba(255,255,255,.5)"/>
+    <stop offset="55%"  stop-color="rgba(255,255,255,.06)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+  </linearGradient>
+  <filter id="zf" x="-20%" y="-20%" width="140%" height="140%">
+    <feGaussianBlur stdDeviation="1.4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="zfb" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="7"/>
+  </filter>
+</defs>
+<polygon points="65,8 112,33 112,83 65,108 18,83 18,33" fill="url(#zBg)"/>
+<polygon points="65,8 112,33 112,83 65,108 18,83 18,33"
+  fill="none" stroke="url(#zHex)" stroke-width="3" stroke-linejoin="round"
+  filter="url(#zf)" class="lg-glow"/>
+<g class="lg-breathe">
+<path d="M 20,33 L 64,33 L 64,45 L 36,83 L 64,83 L 64,95 L 20,95 L 20,83 L 48,45 L 20,45 Z"
+  fill="url(#zBloom)" filter="url(#zfb)" opacity=".7"/>
+<rect x="69" y="33" width="13" height="62" fill="url(#zBloom)" filter="url(#zfb)" opacity=".7"/>
+<path d="M 82,54 L 108,33 L 108,46 L 88,64 Z" fill="url(#zBloom)" filter="url(#zfb)" opacity=".7"/>
+<path d="M 82,66 L 88,66 L 108,87 L 108,100 Z" fill="url(#zBloom)" filter="url(#zfb)" opacity=".7"/>
+<path d="M 20,33 L 64,33 L 64,45 L 36,83 L 64,83 L 64,95 L 20,95 L 20,83 L 48,45 L 20,45 Z"
+  fill="url(#zMain)" filter="url(#zf)"/>
+<path d="M 20,33 L 64,33 L 64,45 L 20,45 Z" fill="url(#zShine)"/>
+<rect x="69" y="33" width="13" height="62" fill="url(#zMain)" filter="url(#zf)"/>
+<path d="M 82,54 L 108,33 L 108,46 L 88,64 Z" fill="url(#zMain)" filter="url(#zf)"/>
+<path d="M 82,66 L 88,66 L 108,87 L 108,100 Z" fill="url(#zMain)" filter="url(#zf)"/>
+<rect x="69" y="33" width="13" height="25" fill="url(#zShine)"/>
+<line x1="66.5" y1="33" x2="66.5" y2="95" stroke="#04060f" stroke-width="1.5"/>
+</g>
+</svg>
+</div>
+
+<h1 data-i18n="title">ZK Tools</h1>
+<p data-i18n="subtitle">OUTILS ZENKARI — CHOISISSEZ VOTRE APPLICATION</p>
+</div>
+
+<div class="container">
+<div class="app-grid">
+
+  <!-- ① Retour ZKmenu -->
+  <div class="app-card hc">
+  <div class="app-icon">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="hg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34d399"/><stop offset="100%" stop-color="#0d9488"/>
+    </linearGradient>
+    <filter id="hf"><feGaussianBlur stdDeviation="1" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Halo pulsant -->
+  <circle cx="20" cy="20" r="18" stroke="url(#hg)" stroke-width=".8" fill="none">
+    <animate attributeName="stroke-opacity" values=".25;.65;.25" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="18;17;18" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <!-- Hexagone : fond + contour glow -->
+  <polygon points="20,4.5 33,12 33,28 20,35.5 7,28 7,12"
+    fill="rgba(13,148,136,.12)" stroke="url(#hg)" stroke-width="2"
+    stroke-linejoin="round" filter="url(#hf)"/>
+  <!-- Z (gauche, proportionné) -->
+  <path d="M 9,14 L 18,14 L 18,17.5 L 12,25 L 18,25 L 18,28 L 9,28 L 9,25 L 15,17.5 L 9,17.5 Z"
+    fill="url(#hg)"/>
+  <!-- K (droite, proportionné) -->
+  <rect x="20" y="14" width="3.5" height="14" fill="url(#hg)"/>
+  <path d="M 23.5,19.5 L 30,14 L 30,17.5 L 26.5,21 Z" fill="url(#hg)"/>
+  <path d="M 23.5,22 L 26.5,22 L 30,28 L 30,24.5 Z" fill="url(#hg)"/>
+  </svg>
+  </div>
+  <h3 data-i18n="back_title">← ZKmenu</h3>
+  <div style="text-align:center"><span class="badge badge-s" data-i18n="back_badge">ACCUEIL</span></div>
+  <p data-i18n="back_desc">Retourner au menu principal Zenkari</p>
+  <ul class="app-features">
+    <li><div class="fd"></div><span data-i18n="back_f1">Toutes les applications</span></li>
+    <li><div class="fd"></div><span data-i18n="back_f2">ZenkariApp, ZenkariPass</span></li>
+    <li><div class="fd"></div><span data-i18n="back_f3">Zenkari Shield & IA</span></li>
+  </ul>
+  <a href="https://zenkari-menu.org" target="_blank" rel="noopener" class="launch-btn" data-i18n="back_btn">OUVRIR ZKMENU</a>
+  </div>
+
+  <!-- ② Zenkari Music + Audio Engine -->
+  <div class="app-card mc">
+  <div class="app-icon" style="background:rgba(139,92,246,.07);border-color:rgba(139,92,246,.18)">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="mg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <linearGradient id="eg" x1="0" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c4b5fd"/><stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="mf"><feGaussianBlur stdDeviation=".8" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Note de musique (eighth note propre) -->
+  <!-- Tête -->
+  <ellipse cx="10" cy="24" rx="5" ry="4" fill="url(#mg)" transform="rotate(-15 10 24)" filter="url(#mf)"/>
+  <!-- Tige verticale -->
+  <line x1="14.2" y1="22.5" x2="14.2" y2="7" stroke="url(#mg)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Crochet (flag) -->
+  <path d="M14.2 7 Q20 9 19 15 Q18 19 14.2 20"
+    stroke="url(#mg)" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+  <!-- Séparateur -->
+  <line x1="23" y1="3" x2="23" y2="37" stroke="rgba(139,92,246,.15)" stroke-width="1"/>
+  <!-- 5 barres EQ animées, proportionnées, alignées en bas -->
+  <rect x="25" y="20" width="2.5" height="16" rx="1.2" fill="url(#eg)">
+    <animate attributeName="height" values="16;8;20;12;16" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="20;28;16;24;20" dur="1.4s" begin="0s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="28.5" y="15" width="2.5" height="21" rx="1.2" fill="url(#eg)">
+    <animate attributeName="height" values="21;10;24;15;21" dur="1.4s" begin=".22s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="15;26;12;21;15" dur="1.4s" begin=".22s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="32" y="22" width="2.5" height="14" rx="1.2" fill="url(#eg)">
+    <animate attributeName="height" values="14;22;8;18;14" dur="1.4s" begin=".44s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="22;14;28;18;22" dur="1.4s" begin=".44s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="35.5" y="18" width="2.5" height="18" rx="1.2" fill="url(#eg)">
+    <animate attributeName="height" values="18;6;22;10;18" dur="1.4s" begin=".66s" repeatCount="indefinite"/>
+    <animate attributeName="y" values="18;30;14;26;18" dur="1.4s" begin=".66s" repeatCount="indefinite"/>
+  </rect>
+  <!-- Ligne de base EQ -->
+  <line x1="24" y1="36" x2="38.5" y2="36" stroke="rgba(139,92,246,.3)" stroke-width="1" stroke-linecap="round"/>
+  </svg>
+  </div>
+  <h3 data-i18n="music_title">Zenkari Music</h3>
+  <div style="text-align:center"><span class="badge badge-b" data-i18n="music_badge">v1.0 BÊTA</span></div>
+  <p data-i18n="music_desc">Lecteur audio/vidéo 60fps + Moteur DSP haute performance</p>
+  <ul class="app-features">
+    <li><div class="fd"></div><span data-i18n="music_f1">Visualiseur canvas 60fps</span></li>
+    <li><div class="fd"></div><span data-i18n="music_f2">Égaliseur 10 bandes</span></li>
+    <li><div class="fd"></div><span data-i18n="music_f3">Moteur DSP natif temps réel</span></li>
+    <li><div class="fd"></div><span data-i18n="music_f4">API ouverte — ZK Audio Engine</span></li>
+  </ul>
+  <div class="dual-btns">
+    <a href="https://zenkari-music.vercel.app" target="_blank" rel="noopener" class="launch-btn btn-music" data-i18n="btn_music">🎵 MUSIC</a>
+    <a href="https://zk-audio-engine.vercel.app" target="_blank" rel="noopener" class="launch-btn btn-engine" data-i18n="btn_engine">⚡ ENGINE</a>
+  </div>
+  </div>
+
+  <!-- ③ Zenkari Converter -->
+  <div class="app-card cc">
+  <div class="app-icon" style="background:rgba(249,115,22,.07);border-color:rgba(249,115,22,.18)">
+  <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <defs>
+    <linearGradient id="cog" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fb923c"/><stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+    <filter id="cof"><feGaussianBlur stdDeviation=".9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <!-- Les deux flèches circulaires tournent lentement ensemble -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate"
+      from="0 20 20" to="360 20 20" dur="7s" repeatCount="indefinite"/>
+    <!-- Arc 1 : haut-droite (150°, clockwise) -->
+    <path d="M 20 5.5 A 14.5 14.5 0 0 1 33.5 27"
+      stroke="url(#cog)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    <!-- Tête de flèche arc 1 (à l'arrivée ~33.5,27 → pointant bas-gauche) -->
+    <polygon points="33.5,27 29,25 32,31.5" fill="url(#cog)" filter="url(#cof)"/>
+
+    <!-- Arc 2 : bas-gauche (150°, clockwise) -->
+    <path d="M 20 34.5 A 14.5 14.5 0 0 1 6.5 13"
+      stroke="url(#cog)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    <!-- Tête de flèche arc 2 (à l'arrivée ~6.5,13 → pointant haut-droite) -->
+    <polygon points="6.5,13 11,15 8,8.5" fill="url(#cog)" filter="url(#cof)"/>
+  </g>
+  <!-- Éclair central (fixe, ne tourne pas) -->
+  <path d="M22 10 L17 21 L21 21 L18 30 L23 19 L19.5 19 Z"
+    fill="url(#cog)" filter="url(#cof)"/>
+  </svg>
+  </div>
+  <h3 data-i18n="conv_title">Zenkari Converter</h3>
+  <div style="text-align:center"><span class="badge badge-b" data-i18n="conv_badge">V3.1 BÊTA</span></div>
+  <p data-i18n="conv_desc">Convertisseur universel : images, vidéo, audio, documents</p>
+  <ul class="app-features">
+    <li><div class="fd"></div><span data-i18n="conv_f1">Images : PNG, JPG, WebP, SVG</span></li>
+    <li><div class="fd"></div><span data-i18n="conv_f2">Vidéo : MP4, WebM, MOV</span></li>
+    <li><div class="fd"></div><span data-i18n="conv_f3">Audio : MP3, WAV, FLAC, OGG</span></li>
+    <li><div class="fd"></div><span data-i18n="conv_f4">Documents : PDF, DOCX, TXT</span></li>
+  </ul>
+  <a href="https://zenkari-converter.vercel.app" target="_blank" rel="noopener" class="launch-btn" data-i18n="conv_btn">LANCER CONVERTER</a>
+  </div>
+
+</div>
+
+<!-- STATUS -->
+<div class="status-bar">
+  <div class="si"><div class="dot dg"></div><span data-i18n="status_online">Tous les outils sont en ligne</span></div>
+  <div class="si"><div class="dot dc"></div><span data-i18n="status_free">🔓 Accès gratuit</span></div>
+  <div class="si"><div class="dot dv"></div><span data-i18n="status_count">3 Outils disponibles</span></div>
+</div>
+
+</div>
+
+<div class="footer">
+  <p data-i18n="footer_copy">© 2026 ZKmenu — Tous droits réservés</p>
+  <p style="margin-top:4px;opacity:.5">Made by LE$TER | Zenkari Music V1 · ZK Audio Engine V1 · Zenkari Converter V3.1</p>
+</div>
+
+<div class="lang-indicator" id="li">🇫🇷 FR</div>
+
+<script>
+/* ════ TRADUCTIONS 15 LANGUES ════ */
+const T = {
+  fr:{
+    title:"ZK Tools", subtitle:"OUTILS ZENKARI — CHOISISSEZ VOTRE APPLICATION",
+    back_title:"← ZKmenu", back_badge:"ACCUEIL", back_desc:"Retourner au menu principal Zenkari",
+    back_f1:"Toutes les applications", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"OUVRIR ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BÊTA",
+    music_desc:"Lecteur audio/vidéo 60fps + Moteur DSP haute performance",
+    music_f1:"Visualiseur canvas 60fps", music_f2:"Égaliseur 10 bandes",
+    music_f3:"Moteur DSP natif temps réel", music_f4:"API ouverte — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BÊTA",
+    conv_desc:"Convertisseur universel : images, vidéo, audio, documents",
+    conv_f1:"Images : PNG, JPG, WebP, SVG", conv_f2:"Vidéo : MP4, WebM, MOV",
+    conv_f3:"Audio : MP3, WAV, FLAC, OGG", conv_f4:"Documents : PDF, DOCX, TXT",
+    conv_btn:"LANCER CONVERTER",
+    status_online:"Tous les outils sont en ligne", status_free:"🔓 Accès gratuit",
+    status_count:"3 Outils disponibles",
+    footer_copy:"© 2026 ZKmenu — Tous droits réservés"
+  },
+  en:{
+    title:"ZK Tools", subtitle:"ZENKARI TOOLS — CHOOSE YOUR APPLICATION",
+    back_title:"← ZKmenu", back_badge:"HOME", back_desc:"Return to the main Zenkari menu",
+    back_f1:"All applications", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"OPEN ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"60fps audio/video player + High-performance DSP engine",
+    music_f1:"60fps canvas visualizer", music_f2:"10-band equalizer",
+    music_f3:"Real-time native DSP engine", music_f4:"Open API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Universal converter: images, video, audio, documents",
+    conv_f1:"Images: PNG, JPG, WebP, SVG", conv_f2:"Video: MP4, WebM, MOV",
+    conv_f3:"Audio: MP3, WAV, FLAC, OGG", conv_f4:"Documents: PDF, DOCX, TXT",
+    conv_btn:"LAUNCH CONVERTER",
+    status_online:"All tools are online", status_free:"🔓 Free access",
+    status_count:"3 Tools available",
+    footer_copy:"© 2026 ZKmenu — All rights reserved"
+  },
+  es:{
+    title:"ZK Tools", subtitle:"HERRAMIENTAS ZENKARI — ELIGE TU APLICACIÓN",
+    back_title:"← ZKmenu", back_badge:"INICIO", back_desc:"Volver al menú principal de Zenkari",
+    back_f1:"Todas las aplicaciones", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ABRIR ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"Reproductor audio/vídeo 60fps + Motor DSP de alto rendimiento",
+    music_f1:"Visualizador canvas 60fps", music_f2:"Ecualizador de 10 bandas",
+    music_f3:"Motor DSP nativo en tiempo real", music_f4:"API abierta — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Convertidor universal: imágenes, vídeo, audio, documentos",
+    conv_f1:"Imágenes: PNG, JPG, WebP, SVG", conv_f2:"Vídeo: MP4, WebM, MOV",
+    conv_f3:"Audio: MP3, WAV, FLAC, OGG", conv_f4:"Documentos: PDF, DOCX, TXT",
+    conv_btn:"INICIAR CONVERTER",
+    status_online:"Todas las herramientas están en línea", status_free:"🔓 Acceso gratuito",
+    status_count:"3 Herramientas disponibles",
+    footer_copy:"© 2026 ZKmenu — Todos los derechos reservados"
+  },
+  de:{
+    title:"ZK Tools", subtitle:"ZENKARI-WERKZEUGE — WÄHLE DEINE ANWENDUNG",
+    back_title:"← ZKmenu", back_badge:"STARTSEITE", back_desc:"Zum Zenkari-Hauptmenü zurückkehren",
+    back_f1:"Alle Anwendungen", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU ÖFFNEN",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"60fps Audio-/Videoplayer + Hochleistungs-DSP-Engine",
+    music_f1:"60fps Canvas-Visualizer", music_f2:"10-Band-Equalizer",
+    music_f3:"Nativer Echtzeit-DSP-Engine", music_f4:"Offene API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Universeller Konverter: Bilder, Video, Audio, Dokumente",
+    conv_f1:"Bilder: PNG, JPG, WebP, SVG", conv_f2:"Video: MP4, WebM, MOV",
+    conv_f3:"Audio: MP3, WAV, FLAC, OGG", conv_f4:"Dokumente: PDF, DOCX, TXT",
+    conv_btn:"CONVERTER STARTEN",
+    status_online:"Alle Tools sind online", status_free:"🔓 Kostenloser Zugang",
+    status_count:"3 Tools verfügbar",
+    footer_copy:"© 2026 ZKmenu — Alle Rechte vorbehalten"
+  },
+  it:{
+    title:"ZK Tools", subtitle:"STRUMENTI ZENKARI — SCEGLI LA TUA APPLICAZIONE",
+    back_title:"← ZKmenu", back_badge:"HOME", back_desc:"Torna al menu principale di Zenkari",
+    back_f1:"Tutte le applicazioni", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"APRI ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"Lettore audio/video 60fps + Motore DSP ad alte prestazioni",
+    music_f1:"Visualizzatore canvas 60fps", music_f2:"Equalizzatore a 10 bande",
+    music_f3:"Motore DSP nativo in tempo reale", music_f4:"API aperta — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Convertitore universale: immagini, video, audio, documenti",
+    conv_f1:"Immagini: PNG, JPG, WebP, SVG", conv_f2:"Video: MP4, WebM, MOV",
+    conv_f3:"Audio: MP3, WAV, FLAC, OGG", conv_f4:"Documenti: PDF, DOCX, TXT",
+    conv_btn:"AVVIA CONVERTER",
+    status_online:"Tutti gli strumenti sono online", status_free:"🔓 Accesso gratuito",
+    status_count:"3 Strumenti disponibili",
+    footer_copy:"© 2026 ZKmenu — Tutti i diritti riservati"
+  },
+  pt:{
+    title:"ZK Tools", subtitle:"FERRAMENTAS ZENKARI — ESCOLHA SUA APLICAÇÃO",
+    back_title:"← ZKmenu", back_badge:"INÍCIO", back_desc:"Voltar ao menu principal Zenkari",
+    back_f1:"Todas as aplicações", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ABRIR ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"Reprodutor áudio/vídeo 60fps + Motor DSP alto desempenho",
+    music_f1:"Visualizador canvas 60fps", music_f2:"Equalizador de 10 bandas",
+    music_f3:"Motor DSP nativo em tempo real", music_f4:"API aberta — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Conversor universal: imagens, vídeo, áudio, documentos",
+    conv_f1:"Imagens: PNG, JPG, WebP, SVG", conv_f2:"Vídeo: MP4, WebM, MOV",
+    conv_f3:"Áudio: MP3, WAV, FLAC, OGG", conv_f4:"Documentos: PDF, DOCX, TXT",
+    conv_btn:"INICIAR CONVERTER",
+    status_online:"Todas as ferramentas estão online", status_free:"🔓 Acesso gratuito",
+    status_count:"3 Ferramentas disponíveis",
+    footer_copy:"© 2026 ZKmenu — Todos os direitos reservados"
+  },
+  ru:{
+    title:"ZK Tools", subtitle:"ИНСТРУМЕНТЫ ZENKARI — ВЫБЕРИТЕ ПРИЛОЖЕНИЕ",
+    back_title:"← ZKmenu", back_badge:"ГЛАВНАЯ", back_desc:"Вернуться в главное меню Zenkari",
+    back_f1:"Все приложения", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ОТКРЫТЬ ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 БЕТА",
+    music_desc:"Аудио/видеоплеер 60fps + Высокопроизводительный DSP-движок",
+    music_f1:"Canvas-визуализатор 60fps", music_f2:"10-полосный эквалайзер",
+    music_f3:"Нативный DSP в реальном времени", music_f4:"Открытый API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 БЕТА",
+    conv_desc:"Универсальный конвертер: изображения, видео, аудио, документы",
+    conv_f1:"Изображения: PNG, JPG, WebP, SVG", conv_f2:"Видео: MP4, WebM, MOV",
+    conv_f3:"Аудио: MP3, WAV, FLAC, OGG", conv_f4:"Документы: PDF, DOCX, TXT",
+    conv_btn:"ЗАПУСТИТЬ CONVERTER",
+    status_online:"Все инструменты онлайн", status_free:"🔓 Бесплатный доступ",
+    status_count:"3 Инструмента доступно",
+    footer_copy:"© 2026 ZKmenu — Все права защищены"
+  },
+  zh:{
+    title:"ZK Tools", subtitle:"ZENKARI 工具 — 选择您的应用",
+    back_title:"← ZKmenu", back_badge:"主页", back_desc:"返回 Zenkari 主菜单",
+    back_f1:"所有应用", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"打开 ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 测试版",
+    music_desc:"60fps 音视频播放器 + 高性能 DSP 引擎",
+    music_f1:"60fps Canvas 可视化", music_f2:"10 段均衡器",
+    music_f3:"原生实时 DSP 引擎", music_f4:"开放 API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 测试版",
+    conv_desc:"通用转换器：图片、视频、音频、文档",
+    conv_f1:"图片：PNG, JPG, WebP, SVG", conv_f2:"视频：MP4, WebM, MOV",
+    conv_f3:"音频：MP3, WAV, FLAC, OGG", conv_f4:"文档：PDF, DOCX, TXT",
+    conv_btn:"启动 CONVERTER",
+    status_online:"所有工具均在线", status_free:"🔓 免费访问",
+    status_count:"3 个工具可用",
+    footer_copy:"© 2026 ZKmenu — 保留所有权利"
+  },
+  ja:{
+    title:"ZK Tools", subtitle:"ZENKARI ツール — アプリケーションを選択",
+    back_title:"← ZKmenu", back_badge:"ホーム", back_desc:"Zenkari メインメニューに戻る",
+    back_f1:"すべてのアプリ", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU を開く",
+    music_title:"Zenkari Music", music_badge:"v1.0 ベータ",
+    music_desc:"60fps オーディオ/ビデオプレーヤー + 高性能 DSP エンジン",
+    music_f1:"60fps Canvas ビジュアライザー", music_f2:"10バンドイコライザー",
+    music_f3:"ネイティブリアルタイム DSP エンジン", music_f4:"オープン API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 ベータ",
+    conv_desc:"ユニバーサルコンバーター：画像、動画、音声、ドキュメント",
+    conv_f1:"画像：PNG, JPG, WebP, SVG", conv_f2:"動画：MP4, WebM, MOV",
+    conv_f3:"音声：MP3, WAV, FLAC, OGG", conv_f4:"ドキュメント：PDF, DOCX, TXT",
+    conv_btn:"CONVERTER を起動",
+    status_online:"すべてのツールがオンライン", status_free:"🔓 無料アクセス",
+    status_count:"3 ツール利用可能",
+    footer_copy:"© 2026 ZKmenu — 全著作権所有"
+  },
+  ko:{
+    title:"ZK Tools", subtitle:"ZENKARI 도구 — 애플리케이션을 선택하세요",
+    back_title:"← ZKmenu", back_badge:"홈", back_desc:"Zenkari 메인 메뉴로 돌아가기",
+    back_f1:"모든 애플리케이션", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU 열기",
+    music_title:"Zenkari Music", music_badge:"v1.0 베타",
+    music_desc:"60fps 오디오/비디오 플레이어 + 고성능 DSP 엔진",
+    music_f1:"60fps 캔버스 시각화", music_f2:"10밴드 이퀄라이저",
+    music_f3:"네이티브 실시간 DSP 엔진", music_f4:"개방형 API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 베타",
+    conv_desc:"범용 변환기: 이미지, 동영상, 오디오, 문서",
+    conv_f1:"이미지: PNG, JPG, WebP, SVG", conv_f2:"동영상: MP4, WebM, MOV",
+    conv_f3:"오디오: MP3, WAV, FLAC, OGG", conv_f4:"문서: PDF, DOCX, TXT",
+    conv_btn:"CONVERTER 실행",
+    status_online:"모든 도구가 온라인 상태", status_free:"🔓 무료 액세스",
+    status_count:"3개 도구 사용 가능",
+    footer_copy:"© 2026 ZKmenu — 모든 권리 보유"
+  },
+  tr:{
+    title:"ZK Tools", subtitle:"ZENKARI ARAÇLARI — UYGULAMANIZI SEÇİN",
+    back_title:"← ZKmenu", back_badge:"ANA SAYFA", back_desc:"Zenkari ana menüsüne dön",
+    back_f1:"Tüm uygulamalar", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU AÇ",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"60fps ses/video oynatıcı + Yüksek performanslı DSP motoru",
+    music_f1:"60fps canvas görselleştirici", music_f2:"10 bantlı ekolayzer",
+    music_f3:"Yerel gerçek zamanlı DSP motoru", music_f4:"Açık API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Evrensel dönüştürücü: görüntüler, video, ses, belgeler",
+    conv_f1:"Görüntüler: PNG, JPG, WebP, SVG", conv_f2:"Video: MP4, WebM, MOV",
+    conv_f3:"Ses: MP3, WAV, FLAC, OGG", conv_f4:"Belgeler: PDF, DOCX, TXT",
+    conv_btn:"CONVERTER BAŞLAT",
+    status_online:"Tüm araçlar çevrimiçi", status_free:"🔓 Ücretsiz erişim",
+    status_count:"3 Araç mevcut",
+    footer_copy:"© 2026 ZKmenu — Tüm hakları saklıdır"
+  },
+  hi:{
+    title:"ZK Tools", subtitle:"ZENKARI टूल्स — अपना एप्लिकेशन चुनें",
+    back_title:"← ZKmenu", back_badge:"होम", back_desc:"Zenkari मुख्य मेनू पर वापस जाएं",
+    back_f1:"सभी एप्लिकेशन", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU खोलें",
+    music_title:"Zenkari Music", music_badge:"v1.0 बीटा",
+    music_desc:"60fps ऑडियो/वीडियो प्लेयर + उच्च-प्रदर्शन DSP इंजन",
+    music_f1:"60fps कैनवास विज़ुअलाइज़र", music_f2:"10-बैंड इक्वलाइज़र",
+    music_f3:"नेटिव रीयल-टाइम DSP इंजन", music_f4:"ओपन API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 बीटा",
+    conv_desc:"सार्वभौमिक कनवर्टर: छवियां, वीडियो, ऑडियो, दस्तावेज़",
+    conv_f1:"छवियां: PNG, JPG, WebP, SVG", conv_f2:"वीडियो: MP4, WebM, MOV",
+    conv_f3:"ऑडियो: MP3, WAV, FLAC, OGG", conv_f4:"दस्तावेज़: PDF, DOCX, TXT",
+    conv_btn:"CONVERTER लॉन्च करें",
+    status_online:"सभी टूल्स ऑनलाइन हैं", status_free:"🔓 मुफ़्त पहुँच",
+    status_count:"3 टूल्स उपलब्ध",
+    footer_copy:"© 2026 ZKmenu — सर्वाधिकार सुरक्षित"
+  },
+  ar:{
+    title:"ZK Tools", subtitle:"أدوات ZENKARI — اختر تطبيقك",
+    back_title:"ZKmenu ←", back_badge:"الرئيسية", back_desc:"العودة إلى القائمة الرئيسية لـ Zenkari",
+    back_f1:"جميع التطبيقات", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"فتح ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 تجريبي",
+    music_desc:"مشغل صوت/فيديو 60fps + محرك DSP عالي الأداء",
+    music_f1:"مُصوِّر Canvas بـ 60fps", music_f2:"معادل صوتي 10 نطاقات",
+    music_f3:"محرك DSP أصلي فوري", music_f4:"API مفتوح — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 تجريبي",
+    conv_desc:"محوّل شامل: صور وفيديو وصوت ومستندات",
+    conv_f1:"صور: PNG, JPG, WebP, SVG", conv_f2:"فيديو: MP4, WebM, MOV",
+    conv_f3:"صوت: MP3, WAV, FLAC, OGG", conv_f4:"مستندات: PDF, DOCX, TXT",
+    conv_btn:"تشغيل CONVERTER",
+    status_online:"جميع الأدوات متصلة بالإنترنت", status_free:"🔓 وصول مجاني",
+    status_count:"3 أدوات متاحة",
+    footer_copy:"© 2026 ZKmenu — جميع الحقوق محفوظة"
+  },
+  bn:{
+    title:"ZK Tools", subtitle:"ZENKARI টুলস — আপনার অ্যাপ্লিকেশন বেছে নিন",
+    back_title:"← ZKmenu", back_badge:"হোম", back_desc:"Zenkari মূল মেনুতে ফিরুন",
+    back_f1:"সব অ্যাপ্লিকেশন", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"ZKMENU খুলুন",
+    music_title:"Zenkari Music", music_badge:"v1.0 বিটা",
+    music_desc:"60fps অডিও/ভিডিও প্লেয়ার + উচ্চ-পারফরম্যান্স DSP ইঞ্জিন",
+    music_f1:"60fps ক্যানভাস ভিজ্যুয়ালাইজার", music_f2:"10-ব্যান্ড ইকুয়ালাইজার",
+    music_f3:"নেটিভ রিয়েল-টাইম DSP ইঞ্জিন", music_f4:"ওপেন API — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 বিটা",
+    conv_desc:"সর্বজনীন কনভার্টার: ছবি, ভিডিও, অডিও, ডকুমেন্ট",
+    conv_f1:"ছবি: PNG, JPG, WebP, SVG", conv_f2:"ভিডিও: MP4, WebM, MOV",
+    conv_f3:"অডিও: MP3, WAV, FLAC, OGG", conv_f4:"ডকুমেন্ট: PDF, DOCX, TXT",
+    conv_btn:"CONVERTER চালু করুন",
+    status_online:"সব টুলস অনলাইন", status_free:"🔓 বিনামূল্যে অ্যাক্সেস",
+    status_count:"3টি টুলস উপলব্ধ",
+    footer_copy:"© 2026 ZKmenu — সর্বস্বত্ব সংরক্ষিত"
+  },
+  vi:{
+    title:"ZK Tools", subtitle:"CÔNG CỤ ZENKARI — CHỌN ỨNG DỤNG CỦA BẠN",
+    back_title:"← ZKmenu", back_badge:"TRANG CHỦ", back_desc:"Quay lại menu chính Zenkari",
+    back_f1:"Tất cả ứng dụng", back_f2:"ZenkariApp, ZenkariPass", back_f3:"Zenkari Shield & IA",
+    back_btn:"MỞ ZKMENU",
+    music_title:"Zenkari Music", music_badge:"v1.0 BETA",
+    music_desc:"Trình phát âm thanh/video 60fps + Công cụ DSP hiệu năng cao",
+    music_f1:"Canvas 60fps visualizer", music_f2:"Bộ chỉnh âm 10 dải",
+    music_f3:"DSP engine gốc thời gian thực", music_f4:"API mở — ZK Audio Engine",
+    btn_music:"🎵 MUSIC", btn_engine:"⚡ ENGINE",
+    conv_title:"Zenkari Converter", conv_badge:"V3.1 BETA",
+    conv_desc:"Trình chuyển đổi toàn diện: hình ảnh, video, âm thanh, tài liệu",
+    conv_f1:"Hình ảnh: PNG, JPG, WebP, SVG", conv_f2:"Video: MP4, WebM, MOV",
+    conv_f3:"Âm thanh: MP3, WAV, FLAC, OGG", conv_f4:"Tài liệu: PDF, DOCX, TXT",
+    conv_btn:"KHỞI ĐỘNG CONVERTER",
+    status_online:"Tất cả công cụ đang hoạt động", status_free:"🔓 Truy cập miễn phí",
+    status_count:"3 công cụ có sẵn",
+    footer_copy:"© 2026 ZKmenu — Bảo lưu mọi quyền"
+  }
+};
+
+const FL={en:"🇬🇧 EN",fr:"🇫🇷 FR",es:"🇪🇸 ES",zh:"🇨🇳 ZH",hi:"🇮🇳 HI",ar:"🇸🇦 AR",
+  pt:"🇵🇹 PT",bn:"🇧🇩 BN",ru:"🇷🇺 RU",ja:"🇯🇵 JA",de:"🇩🇪 DE",it:"🇮🇹 IT",
+  vi:"🇻🇳 VI",ko:"🇰🇷 KO",tr:"🇹🇷 TR"};
+
+let lang="fr";
+function t(k){return (T[lang]&&T[lang][k])||T.en[k]||k}
+
+function applyLang(l){
+  const tr=T[l]||T.en;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const k=el.getAttribute("data-i18n");
+    if(tr[k]!==undefined)el.textContent=tr[k];
+  });
+  document.getElementById("li").textContent=FL[l]||l;
+  document.documentElement.lang=l;
+  document.documentElement.dir=l==="ar"?"rtl":"ltr";
+}
+
+function changeLang(){
+  lang=document.getElementById("ls").value;
+  localStorage.setItem("zktool_lang",lang);
+  applyLang(lang);
+}
+
+/* ── Canvas particles ── */
+(function(){
+  const c=document.getElementById("bgCanvas"),ctx=c.getContext("2d");
+  let W,H,mx=-999,my=-999;
+  const N=65,nodes=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight}
+  resize();addEventListener("resize",resize);
+  addEventListener("mousemove",e=>{mx=e.clientX;my=e.clientY});
+  for(let i=0;i<N;i++)nodes.push({
+    x:Math.random()*2000,y:Math.random()*1200,
+    vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,
+    r:Math.random()*1.6+.5,h:200+Math.random()*55
+  });
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    nodes.forEach(n=>{
+      n.x+=n.vx;n.y+=n.vy;
+      if(n.x<0||n.x>W)n.vx*=-1;
+      if(n.y<0||n.y>H)n.vy*=-1;
+      const dx=n.x-mx,dy=n.y-my,d=Math.hypot(dx,dy);
+      if(d<130&&d>0){n.x+=dx/d*1.8;n.y+=dy/d*1.8}
+      ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);
+      ctx.fillStyle=`hsla(${n.h},68%,63%,.45)`;ctx.fill();
+    });
+    for(let i=0;i<N;i++)for(let j=i+1;j<N;j++){
+      const a=nodes[i],b=nodes[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<145){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(59,130,246,${(1-d/145)*.18})`;
+        ctx.lineWidth=.6;ctx.stroke();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ── Card entrance ── */
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.style.opacity="1";
+      e.target.style.transform="none";
+      obs.unobserve(e.target);
+    }
+  });
+},{threshold:.12});
+document.querySelectorAll(".app-card").forEach(c=>obs.observe(c));
+
+/* ── Init ── */
+const saved=localStorage.getItem("zktool_lang");
+if(saved&&FL[saved]){lang=saved;document.getElementById("ls").value=saved}
+applyLang(lang);
+</script>
+</body>
+</html>
